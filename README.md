@@ -18,5 +18,5 @@ go install github.com/chyroc/rerun-fail-test@latest
 ## Usage
 
 ```shell
-rerun-fail-test
+go test ./... | rerun-fail-test -retry-times=10 -- ./...
 ```
