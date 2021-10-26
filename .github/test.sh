@@ -1,0 +1,23 @@
+#!/bin/bash
+
+set -e
+
+# setup env
+export LOCAL_TEST=true
+export GO111MODULE=on
+
+module_name=$(cat go.mod | grep module | cut -d ' ' -f 2-2)
+module_list=(`go list ./...`)
+echo "module_name is $module_name"
+
+echo 'mode: atomic' > coverage.txt
+
+for ele in "${module_list[@]}";
+do
+  echo "start handle sub_module: $ele"
+  go test -covermode=atomic -coverprofile=coverage.tmp -coverpkg=./... -parallel 1 -p 1 -count=1 -gcflags=-l $ele | go run main.go -retry-times=20 -- -covermode=atomic -coverprofile=coverage.tmp -coverpkg=./... -parallel 1 -p 1 -count=1 -gcflags=-l $ele
+  tail -n +2 coverage.tmp >> coverage.txt || echo ""
+  rm coverage.tmp
+done
+
+# go tool cover -func=coverage.txt -o coverage.txt
